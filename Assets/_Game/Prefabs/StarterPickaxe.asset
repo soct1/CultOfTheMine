@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CultOfTheMine.Mining.PickaxeConfig
   pickaxeName: Starter Pickaxe
   power: 10
+  miningRadius: 0.5

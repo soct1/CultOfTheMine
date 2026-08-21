@@ -8,6 +8,7 @@ namespace CultOfTheMine.Mining
 
         public PickaxeConfig Config => config;
         public int Power => config != null ? config.Power : 0;
+        public float MiningRadius => config != null ? config.MiningRadius : 0f;
 
         public int CalculateDamage(MineNode mine)
         {
@@ -16,17 +17,10 @@ namespace CultOfTheMine.Mining
 
             float rawDamage = config.Power / mine.Config.Hardness;
 
-            return Mathf.Max(1, Mathf.FloorToInt(rawDamage));
-        }
-
-        public void Mine(MineNode mine)
-        {
-            if (mine == null || mine.IsBroken)
-                return;
-
-            int damage = CalculateDamage(mine);
-
-            mine.TakeDamage(damage);
+            return Mathf.Max(
+                1,
+                Mathf.FloorToInt(rawDamage)
+            );
         }
     }
 }

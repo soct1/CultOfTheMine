@@ -5,27 +5,31 @@ namespace CultOfTheMine.Disciples
 {
     public class MineTargetSelector : MonoBehaviour
     {
-        [SerializeField] private float searchRadius = 100f;
+        [SerializeField] private MineSpawner mineSpawner;
 
         public MineNode FindNearestMine()
         {
-            MineNode[] mines = FindObjectsByType<MineNode>(
-                FindObjectsInactive.Exclude
-            );
+            if (mineSpawner == null)
+            {
+                Debug.LogError(
+                    "MineTargetSelector has no MineSpawner assigned.",
+                    this
+                );
+
+                return null;
+            }
 
             MineNode nearestMine = null;
             float nearestDistanceSqr = float.MaxValue;
 
-            foreach (MineNode mine in mines)
+            foreach (MineNode mine in mineSpawner.ActiveMines)
             {
                 if (mine == null || mine.IsBroken)
                     continue;
 
                 float distanceSqr =
-                    (mine.transform.position - transform.position).sqrMagnitude;
-
-                if (distanceSqr > searchRadius * searchRadius)
-                    continue;
+                    (mine.transform.position - transform.position)
+                    .sqrMagnitude;
 
                 if (distanceSqr < nearestDistanceSqr)
                 {

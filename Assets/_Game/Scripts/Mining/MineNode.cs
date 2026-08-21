@@ -18,6 +18,19 @@ namespace CultOfTheMine.Mining
         private void Awake()
         {
             Initialize();
+
+            if (resourceInventory == null)
+            {
+                resourceInventory = FindAnyObjectByType<ResourceInventory>();
+
+                if (resourceInventory == null)
+                {
+                    Debug.LogError(
+                        $"MineNode on '{name}' could not find a ResourceInventory.",
+                        this
+                    );
+                }
+            }
         }
 
         public void Initialize()
@@ -65,7 +78,7 @@ namespace CultOfTheMine.Mining
             if (resourceInventory == null)
             {
                 Debug.LogError(
-                    $"MineNode on '{name}' has no ResourceInventory assigned.",
+                    $"MineNode on '{name}' could not find a ResourceInventory.",
                     this
                 );
 
@@ -83,6 +96,8 @@ namespace CultOfTheMine.Mining
             }
 
             resourceInventory.Add(config.Resource, 1);
+
+            Destroy(gameObject);
         }
 
         private void ShowDamageNumber(int damage)

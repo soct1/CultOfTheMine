@@ -6,22 +6,23 @@ namespace CultOfTheMine.Disciples
     public class DiscipleMining : MonoBehaviour
     {
         [SerializeField] private DiscipleMovement movement;
-        [SerializeField] private PickaxeConfig pickaxe;
+        [SerializeField] private Pickaxe pickaxe;
+        [SerializeField] private MineSpawner mineSpawner;
+
+        [SerializeField] private Transform pickaxeDamagePoint;
         [SerializeField] private float miningInterval = 1f;
 
         private MineNode target;
-        private float miningTimer;
+        private float nextMiningTime;
 
         public void SetTarget(MineNode newTarget)
         {
             target = newTarget;
-            miningTimer = 0f;
         }
 
         public void ClearTarget()
         {
             target = null;
-            miningTimer = 0f;
         }
 
         private void Update()
@@ -35,38 +36,86 @@ namespace CultOfTheMine.Disciples
                 return;
             }
 
-            if (movement == null || !movement.IsInMiningRange())
+            if (movement == null ||
+                !movement.IsInMiningRange())
+            {
                 return;
+            }
 
-            miningTimer -= Time.deltaTime;
-
-            if (miningTimer > 0f)
+            if (Time.time < nextMiningTime)
                 return;
 
             Mine();
 
-            miningTimer = miningInterval;
+            nextMiningTime =
+                Time.time + miningInterval;
         }
 
         private void Mine()
         {
-            if (pickaxe == null)
+            if (pickaxe == null ||
+                pickaxeDamagePoint == null ||
+                mineSpawner == null)
             {
-                Debug.LogError(
-                    $"DiscipleMining on '{name}' has no PickaxeConfig assigned.",
-                    this
-                );
                 return;
             }
 
-            int damage = Mathf.Max(
-                1,
-                Mathf.FloorToInt(
-                    pickaxe.Power / target.Config.Hardness
-                )
+            Vector2 hitPosition =
+                pickaxeDamagePoint.position;
+
+            float radius =
+                pickaxe.MiningRadius;
+
+            float radiusSqr =
+                radius * radius;
+
+            foreach (MineNode mine in mineSpawner.ActiveMines)
+            {
+                if (mine == null ||
+                    mine.IsBroken)
+                {
+                    continue;
+                }
+
+                Collider2D mineCollider =
+                    mine.GetComponent<Collider2D>();
+
+                if (mineCollider == null)
+                    continue;
+
+                Vector2 closestPoint =
+                    mineCollider.ClosestPoint(hitPosition);
+
+                float distanceSqr =
+                    (closestPoint - hitPosition).sqrMagnitude;
+
+                if (distanceSqr > radiusSqr)
+                    continue;
+
+                int damage =
+                    pickaxe.CalculateDamage(mine);
+
+                mine.TakeDamage(damage);
+            }
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            if (pickaxeDamagePoint == null ||
+                pickaxe == null)
+            {
+                return;
+            }
+
+            Gizmos.DrawWireSphere(
+                pickaxeDamagePoint.position,
+                pickaxe.MiningRadius
             );
 
-            target.TakeDamage(damage);
+            Gizmos.DrawWireSphere(
+                pickaxeDamagePoint.position,
+                0.05f
+            );
         }
     }
 }
